@@ -5,3 +5,4 @@ NoClaps/Data_wav/*
 .venv
 .idea
 __pycache__
+.DS_Store
