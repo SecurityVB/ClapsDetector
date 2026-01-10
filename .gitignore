@@ -3,3 +3,5 @@ Claps/Data_wav/*
 NoClaps/Dat_m4a/*
 NoClaps/Data_wav/*
 .venv
+.idea
+__pycache__
