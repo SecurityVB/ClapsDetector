@@ -1,54 +1,52 @@
-# import librosa
-# import numpy as np
-from pydub import AudioSegment
-import os
+import librosa
+import numpy as np
+import matplotlib.pyplot as plt
+import librosa.display
+from torch.utils.data import DataLoader
 
-from GenerateDataSet import *
-from config import *
+from GeneratorDataset.GenerateDatasetFiles import create_dataset
+from GeneratorDataset.CreateSpectogramm import audio_to_spectrogram
+from GeneratorDataset.GenerateDataset import *
+from CNN import *
+from checkfile import g
+
+model = ClapCNN()
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+model = model.to(device)
+
+criterion = nn.BCEWithLogitsLoss()
+optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
 
 
-# SR = 22050
-# N_FFT = 2048
-# HOP = 512
-# DURATION = 1.0
-#
-# def audio_to_spectrogram(path):
-#     y, sr = librosa.load(path, sr=SR)
-#
-#     target_len = int(SR * DURATION)
-#
-#     # жёстко приводим к 1 секунде
-#     if len(y) > target_len:
-#         y = y[:target_len]
-#     elif len(y) < target_len:
-#         y = np.pad(y, (0, target_len - len(y)))
-#
-#     S = np.abs(librosa.stft(
-#         y,
-#         n_fft=N_FFT,
-#         hop_length=HOP
-#     ))
-#
-#     spec = librosa.amplitude_to_db(S, ref=np.max)
-#
-#     # нормализация — ОБЯЗАТЕЛЬНО
-#     spec = (spec - spec.mean()) / spec.std()
-#
-#     return spec
+dataset = ClapDataset(
+    folder_positive='Claps/Data_wav',
+    folder_negative='NoClaps/Data_wav'
+)
 
-for file in os.listdir(path_m4a):
-    if file.endswith("m4a"):
-        audio = AudioSegment.from_file(path_m4a+file, format="m4a")
-        for db in range(-15, 16, 5):
-            aug_audio = change_volume(audio, db)
-            save(f'db_{db}.wav', aug_audio)
-        for i in (0.01, 0.02, 0.03):
-            aug_audio = add_noise(audio, i)
-            save(f'Noisy_{i}.wav', aug_audio)
-        for db in range(-15, 16, 5):
-            if db != 0:
-                for i in (0.01, 0.02, 0.03):
-                    aug_audio = change_volume(add_noise(audio, i), db)
-                    save(f'Noisy_{i}_db_{db}.wav', aug_audio)
+dataloader = DataLoader(
+    dataset,
+    batch_size=8,
+    shuffle=True
+)
 
-# print(audio_to_spectrogram('Clap2.wav').shape)
+
+model.train()
+
+for x, y in dataloader:
+    x = x.to(device)   # (B, 1, 64, T)
+    y = y.to(device)   # (B,)
+
+    optimizer.zero_grad()
+
+    logits = model(x)      # (B, 1)
+    logits = logits.squeeze(1)
+
+    loss = criterion(logits, y)
+
+    loss.backward()
+    optimizer.step()
+
+model.load_state_dict(torch.load("model_weights.pth"))
+model.eval()
+
+g(model)
