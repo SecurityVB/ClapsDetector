@@ -39,10 +39,16 @@ from config import *
 for file in os.listdir(path_m4a):
     if file.endswith("m4a"):
         audio = AudioSegment.from_file(path_m4a+file, format="m4a")
-        for db in range(-16, 17, 2):
+        for db in range(-15, 16, 5):
+            aug_audio = change_volume(audio, db)
+            save(f'db_{db}.wav', aug_audio)
+        for i in (0.01, 0.02, 0.03):
+            aug_audio = add_noise(audio, i)
+            save(f'Noisy_{i}.wav', aug_audio)
+        for db in range(-15, 16, 5):
             if db != 0:
                 for i in (0.01, 0.02, 0.03):
-                    aug_audio = change_volume(add_noise(audio, i), i)
+                    aug_audio = change_volume(add_noise(audio, i), db)
                     save(f'Noisy_{i}_db_{db}.wav', aug_audio)
 
 # print(audio_to_spectrogram('Clap2.wav').shape)
