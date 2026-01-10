@@ -1,7 +1,9 @@
 import torch
-from torch.utils.data import Dataset
 import os
+from torch.utils.data import Dataset
+
 from GeneratorDataset.CreateSpectogramm import audio_to_spectrogram
+
 
 class ClapDataset(Dataset):
     def __init__(self, folder_positive, folder_negative):
@@ -10,13 +12,15 @@ class ClapDataset(Dataset):
 
         for f in os.listdir(folder_positive):
             if f.endswith('.wav'):
-                self.files.append(os.path.join(folder_positive, f))
-                self.labels.append(1.0)
+                # if len(f)<15:
+                    self.files.append(os.path.join(folder_positive, f))
+                    self.labels.append(1.0)
 
         for f in os.listdir(folder_negative):
             if f.endswith('.wav'):
-                self.files.append(os.path.join(folder_negative, f))
-                self.labels.append(0.0)
+                # if len(f) < 14:
+                    self.files.append(os.path.join(folder_negative, f))
+                    self.labels.append(0.0)
 
     def __len__(self):
         return len(self.files)

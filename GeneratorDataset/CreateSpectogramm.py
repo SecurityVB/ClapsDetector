@@ -1,7 +1,7 @@
 import librosa
 import numpy as np
-import matplotlib.pyplot as plt
-import librosa.display
+# import matplotlib.pyplot as plt
+# import librosa.display
 
 
 SR = 16000

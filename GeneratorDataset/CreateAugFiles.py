@@ -1,7 +1,7 @@
 from GeneratorDataset.AudioManager import *
 from config import *
 
-def create_dataset():
+def create_aug_files():
     for file in os.listdir(path_claps_m4a):
         if file.endswith("m4a"):
             audio = AudioSegment.from_file(path_claps_m4a+file, format="m4a")
