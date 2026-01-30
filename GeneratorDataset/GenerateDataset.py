@@ -11,13 +11,13 @@ class ClapDataset(Dataset):
         self.labels = []
 
         for f in os.listdir(folder_positive):
-            if f.endswith('.wav'):
+            if f.endswith('.wav') and ("db" in f or "noise" in f):
                 # if len(f)<15:
                     self.files.append(os.path.join(folder_positive, f))
                     self.labels.append(1.0)
 
         for f in os.listdir(folder_negative):
-            if f.endswith('.wav'):
+            if f.endswith('.wav') and ("db" in f or "noise" in f):
                 # if len(f) < 14:
                     self.files.append(os.path.join(folder_negative, f))
                     self.labels.append(0.0)

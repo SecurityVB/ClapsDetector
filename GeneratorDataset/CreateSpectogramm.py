@@ -1,7 +1,7 @@
 import librosa
 import numpy as np
-# import matplotlib.pyplot as plt
-# import librosa.display
+import matplotlib.pyplot as plt
+import librosa.display
 
 
 SR = 16000
@@ -9,9 +9,9 @@ DURATION = 1.0
 
 N_FFT = 512
 HOP = 128
-N_MELS = 64
+N_MELS = 32
 
-FMIN = 400
+FMIN = 500
 FMAX = 8000
 
 
@@ -40,19 +40,18 @@ def audio_to_spectrogram(path):
 
     return mel_db
 
-# spec = audio_to_spectrogram('Claps/Data_wav/Clap1_db_-15.wav')
+# for spec in a:
+#     plt.figure(figsize=(6, 4))
+#     librosa.display.specshow(
+#         spec,
+#         sr=SR,
+#         hop_length=HOP,
+#         x_axis="time",
+#         y_axis="mel",
+#         cmap="magma"
+#     )
 #
-# plt.figure(figsize=(6, 4))
-# librosa.display.specshow(
-#     spec,
-#     sr=SR,
-#     hop_length=HOP,
-#     x_axis="time",
-#     y_axis="mel",
-#     cmap="magma"
-# )
-#
-# plt.colorbar(label="z-normalized dB")
-# plt.title("Log-Mel Spectrogram")
-# plt.tight_layout()
-# plt.show()
+#     plt.colorbar(label="z-normalized dB")
+#     plt.title("Log-Mel Spectrogram")
+#     plt.tight_layout()
+#     plt.show()

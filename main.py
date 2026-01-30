@@ -17,7 +17,7 @@ model = model.to(device)
 
 pw = round(667/348, 3)
 pos_weight = torch.tensor([pw]).to(device)
-#
+
 # criterion = nn.BCEWithLogitsLoss(pos_weight=pos_weight)
 # optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
 
@@ -33,10 +33,9 @@ dataloader = DataLoader(
     shuffle=True
 )
 
-
 # model.train()
 #
-# for epoch in range(3 0):
+# for epoch in range(50):
 #     for x, y in dataloader:
 #         x = x.to(device)
 #         y = y.to(device)
@@ -49,14 +48,14 @@ dataloader = DataLoader(
 #         loss.backward()
 #         optimizer.step()
 #
-#     # if epoch % 20 == 0:
-#     print(f"Epoch {epoch} | loss = {loss.item():.6f}")
+#     if epoch % 5 == 0:
+#         print(f"Epoch {epoch} | loss = {loss.item():.6f}")
 #
-# torch.save(model.state_dict(), "weights/model_weights_pos_weight_30_epoch.pth")
+# torch.save(model.state_dict(), "weights/new_weights/new_weights_aug.pth")
 
-model.load_state_dict(torch.load("weights/model_weights_pos_weight_30_epoch.pth"))
+model.load_state_dict(torch.load("weights/new_weights/new_weights_aug.pth"))
 model.eval()
 
-# find_optimal_threshold(model, device, dataloader)
+find_optimal_threshold(model, device, dataloader)
 
 prob_file(model)

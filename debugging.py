@@ -5,7 +5,7 @@ from pydub import AudioSegment
 from GeneratorDataset.CreateSpectogramm import audio_to_spectrogram
 
 
-def prob_file(model, path_to_file='NoCLaps/Data_wav/Clapp9.wav'):
+def prob_file(model, path_to_file='ClapExample.wav'):
     spec = audio_to_spectrogram(path_to_file)
 
     x = torch.tensor(spec, dtype=torch.float32)
@@ -16,7 +16,7 @@ def prob_file(model, path_to_file='NoCLaps/Data_wav/Clapp9.wav'):
         logit = model(x)
         prob = torch.sigmoid(logit)
 
-    threshold = 0.4
+    threshold = 0.5
     is_two_claps = prob.item() > threshold
 
     print(f"Probability 2 claps: {prob.item():.3f}")
