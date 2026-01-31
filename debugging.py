@@ -1,6 +1,5 @@
 import torch
 import numpy as np
-from pydub import AudioSegment
 
 from GeneratorDataset.CreateSpectogramm import audio_to_spectrogram
 
