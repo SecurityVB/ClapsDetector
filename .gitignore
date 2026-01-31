@@ -6,3 +6,4 @@ NoClaps/Data_wav/*
 .idea
 __pycache__
 .DS_Store
+shell.py
