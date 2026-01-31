@@ -4,21 +4,22 @@ from torch.utils.data import Dataset
 
 from GeneratorDataset.CreateSpectogramm import audio_to_spectrogram
 
+ar = [f"Noise{x}.wav" for x in range(6,30)]
 
 class ClapDataset(Dataset):
-    def __init__(self, folder_positive, folder_negative):
+    def __init__(self, folder_positive=None, folder_negative=None):
         self.files = []
         self.labels = []
 
-        for f in os.listdir(folder_positive):
-            if f.endswith('.wav') and ("db" in f or "noise" in f):
-                # if len(f)<15:
+        if folder_positive is not None:
+            for f in os.listdir(folder_positive):
+                if f.endswith('.wav'):
                     self.files.append(os.path.join(folder_positive, f))
                     self.labels.append(1.0)
 
-        for f in os.listdir(folder_negative):
-            if f.endswith('.wav') and ("db" in f or "noise" in f):
-                # if len(f) < 14:
+        if folder_negative is not None:
+            for f in os.listdir(folder_negative):
+                if f.endswith('.wav'):# and ("Noise" in f and "_" in f):
                     self.files.append(os.path.join(folder_negative, f))
                     self.labels.append(0.0)
 

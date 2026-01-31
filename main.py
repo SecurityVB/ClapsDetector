@@ -1,61 +1,71 @@
-import librosa
+# model.load_state_dict(torch.load("weights/new_weights/new_weights_aug.pth"))
+# model.eval()
+#
+# find_optimal_threshold(model, device, dataloader)
+#
+# prob_file(model)
+
+
 import numpy as np
-# import matplotlib.pyplot as plt
-# import librosa.display
-from torch.utils.data import DataLoader
+import sounddevice as sd
+import queue
 
-from GeneratorDataset.CreateAugFiles import create_aug_files
-from GeneratorDataset.CreateSpectogramm import audio_to_spectrogram
-from GeneratorDataset.GenerateDataset import *
-from CNN import *
-from debugging import *
+import torch
 
+from CNN import ClapCNN
+from config import *
+from GeneratorDataset.CreateSpectogramm import audio_array_to_spectrogram
+
+
+audio_queue = queue.Queue()
+
+
+def audio_callback(indata, frames, time, status):
+    if status:
+        print(status)
+    audio_queue.put(indata.copy())
+
+c=0
 
 model = ClapCNN()
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = model.to(device)
-
-pw = round(667/348, 3)
-pos_weight = torch.tensor([pw]).to(device)
-
-# criterion = nn.BCEWithLogitsLoss(pos_weight=pos_weight)
-# optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
-
-
-dataset = ClapDataset(
-    folder_positive='Claps/Data_wav',
-    folder_negative='NoClaps/Data_wav'
-)
-
-dataloader = DataLoader(
-    dataset,
-    batch_size=8,
-    shuffle=True
-)
-
-# model.train()
-#
-# for epoch in range(50):
-#     for x, y in dataloader:
-#         x = x.to(device)
-#         y = y.to(device)
-#
-#         optimizer.zero_grad()
-#
-#         logits = model(x).squeeze(1)
-#         loss = criterion(logits, y)
-#
-#         loss.backward()
-#         optimizer.step()
-#
-#     if epoch % 5 == 0:
-#         print(f"Epoch {epoch} | loss = {loss.item():.6f}")
-#
-# torch.save(model.state_dict(), "weights/new_weights/new_weights_aug.pth")
-
-model.load_state_dict(torch.load("weights/new_weights/new_weights_aug.pth"))
+model.load_state_dict(torch.load("weights/new_weights/new_weights_1_aug.pth"))
 model.eval()
 
-find_optimal_threshold(model, device, dataloader)
+buffer = np.zeros(0, dtype=np.float32)
+TARGET_SAMPLES = int(SR * DURATION)
 
-prob_file(model)
+with sd.InputStream(
+    samplerate=SR,
+    channels=1,
+    dtype='float32',
+    callback=audio_callback
+):
+    print("🎤 Слушаю микрофон...")
+
+    while True:
+        data = audio_queue.get()
+        data = data.flatten()
+
+        buffer = np.concatenate([buffer, data])
+
+        while len(buffer) >= TARGET_SAMPLES:
+            chunk = buffer[:TARGET_SAMPLES]
+            buffer = buffer[TARGET_SAMPLES:]
+
+            spec = audio_array_to_spectrogram(chunk)
+
+            x = torch.tensor(spec, dtype=torch.float32)
+            x = x.unsqueeze(0)
+            x = x.unsqueeze(0)
+
+            with torch.no_grad():
+                logit = model(x)
+                prob = torch.sigmoid(logit)
+
+            threshold = 0.6
+            is_two_claps = prob.item() > threshold
+            print(f"Probability 2 claps {c}: {prob.item():.3f}")
+            print(f"Two claps {0}?", "yes" if is_two_claps else "no")
+            c+=1
