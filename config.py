@@ -4,7 +4,6 @@ path_Noclaps_m4a = "NoClaps/Data_m4a/"
 path_Noclaps_wav = "NoClaps/Data_wav/"
 
 
-
 SR = 16000
 DURATION = 1.0
 

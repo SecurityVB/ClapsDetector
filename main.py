@@ -1,11 +1,3 @@
-# model.load_state_dict(torch.load("weights/new_weights/new_weights_aug.pth"))
-# model.eval()
-#
-# find_optimal_threshold(model, device, dataloader)
-#
-# prob_file(model)
-
-
 import numpy as np
 import sounddevice as sd
 import queue
@@ -16,9 +8,7 @@ from CNN import ClapCNN
 from config import *
 from GeneratorDataset.CreateSpectogramm import audio_array_to_spectrogram
 
-
 audio_queue = queue.Queue()
-
 
 def audio_callback(indata, frames, time, status):
     if status:
@@ -30,7 +20,7 @@ c=0
 model = ClapCNN()
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = model.to(device)
-model.load_state_dict(torch.load("weights/new_weights/new_weights_1_aug.pth"))
+model.load_state_dict(torch.load("weights/weights_2/weights_aug.pth"))
 model.eval()
 
 buffer = np.zeros(0, dtype=np.float32)
@@ -67,5 +57,5 @@ with sd.InputStream(
             threshold = 0.6
             is_two_claps = prob.item() > threshold
             print(f"Probability 2 claps {c}: {prob.item():.3f}")
-            print(f"Two claps {0}?", "yes" if is_two_claps else "no")
-            c+=1
+            if is_two_claps:
+                print("Two claps 👏")

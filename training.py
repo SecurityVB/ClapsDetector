@@ -13,9 +13,9 @@ model = ClapCNN()
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = model.to(device)
 
-model.load_state_dict(torch.load("weights/new_weights/new_weights_1.pth"))
+model.load_state_dict(torch.load("weights/weights_2/weights.pth"))
 
-pw = round(count_negative/count_positive, 3)
+pw = round(4/4, 3)
 pos_weight = torch.tensor([pw]).to(device)
 
 criterion = nn.BCEWithLogitsLoss(pos_weight=pos_weight)
@@ -23,8 +23,8 @@ optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
 
 
 dataset = ClapDataset(
-    folder_positive='Claps/Data_wav',
-    folder_negative='NoClaps/Data_wav'
+    folder_positive=path_claps_wav,
+    folder_negative=path_Noclaps_wav
 )
 
 dataloader = DataLoader(
@@ -35,7 +35,7 @@ dataloader = DataLoader(
 
 model.train()
 
-for epoch in range(30):
+for epoch in range(50):
     for x, y in dataloader:
         x = x.to(device)
         y = y.to(device)
@@ -51,4 +51,4 @@ for epoch in range(30):
     if epoch % 5 == 0:
         print(f"Epoch {epoch} | loss = {loss.item():.6f}")
 
-torch.save(model.state_dict(), "weights/new_weights/new_weights_1_aug.pth")
+torch.save(model.state_dict(), "weights/weights_2/weights_aug.pth")

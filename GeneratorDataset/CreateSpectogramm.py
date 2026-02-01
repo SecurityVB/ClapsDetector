@@ -6,7 +6,7 @@ import librosa.display
 from config import *
 
 c=0
-matplotlib.use('Agg')
+# matplotlib.use('Agg')
 
 def audio_to_spectrogram(path):
     y, _ = librosa.load(path, sr=SR, mono=True)

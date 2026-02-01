@@ -4,7 +4,7 @@ from torch.utils.data import Dataset
 
 from GeneratorDataset.CreateSpectogramm import audio_to_spectrogram
 
-ar = [f"Noise{x}.wav" for x in range(6,30)]
+ar = [f"Clap{x}" for x in range(13,17)]
 
 class ClapDataset(Dataset):
     def __init__(self, folder_positive=None, folder_negative=None):
@@ -19,13 +19,14 @@ class ClapDataset(Dataset):
 
         if folder_negative is not None:
             for f in os.listdir(folder_negative):
-                if f.endswith('.wav'):# and ("Noise" in f and "_" in f):
+                if f.endswith('.wav'):
                     self.files.append(os.path.join(folder_negative, f))
                     self.labels.append(0.0)
 
     def __len__(self):
         return len(self.files)
 
+    # Supervised Learning
     def __getitem__(self, idx):
         path = self.files[idx]
         label = torch.tensor(self.labels[idx], dtype=torch.float32)
