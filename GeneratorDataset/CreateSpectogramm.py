@@ -1,41 +1,43 @@
-import librosa
 import numpy as np
-import matplotlib
-import matplotlib.pyplot as plt
-import librosa.display
+from scipy.signal import stft
+
 from config import *
 
-c=0
-# matplotlib.use('Agg')
 
-def audio_to_spectrogram(path):
-    y, _ = librosa.load(path, sr=SR, mono=True)
-    target_len = int(SR * DURATION)
+def hz_to_mel(hz):
+    return 2595 * np.log10(1 + hz / 700)
 
-    if len(y) > target_len:
-        y = y[:target_len]
-    else:
-        y = np.pad(y, (0, target_len - len(y)))
+def mel_to_hz(mel):
+    return 700 * (10**(mel / 2595) - 1)
 
-    mel = librosa.feature.melspectrogram(
-        y=y,
-        sr=SR,
-        n_fft=N_FFT,
-        hop_length=HOP,
-        n_mels=N_MELS,
-        fmin=FMIN,
-        fmax=FMAX,
-        power=2.0
-    )
+def mel_filterbank(sr, n_fft, n_mels, fmin, fmax):
+    mel_min = hz_to_mel(fmin)
+    mel_max = hz_to_mel(fmax)
 
-    mel_db = librosa.power_to_db(mel, ref=np.max, top_db=80)
-    mel_db = (mel_db - mel_db.mean()) / (mel_db.std() + 1e-6)
+    mel_points = np.linspace(mel_min, mel_max, n_mels + 2)
+    hz_points = mel_to_hz(mel_points)
 
-    return mel_db
+    bins = np.floor((n_fft + 1) * hz_points / sr).astype(int)
+
+    filterbank = np.zeros((n_mels, n_fft // 2 + 1))
+
+    for i in range(1, n_mels + 1):
+        left = bins[i - 1]
+        center = bins[i]
+        right = bins[i + 1]
+
+        for j in range(left, center):
+            filterbank[i - 1, j] = (j - left) / (center - left)
+        for j in range(center, right):
+            filterbank[i - 1, j] = (right - j) / (right - center)
+
+    return filterbank
+
+MEL_FILTER = mel_filterbank(SR, N_FFT, N_MELS, FMIN, FMAX)
+
 
 
 def audio_array_to_spectrogram(y):
-    global c
     target_len = int(SR * DURATION)
 
     if len(y) > target_len:
@@ -43,52 +45,24 @@ def audio_array_to_spectrogram(y):
     else:
         y = np.pad(y, (0, target_len - len(y)))
 
-    mel = librosa.feature.melspectrogram(
-        y=y,
-        sr=SR,
-        n_fft=N_FFT,
-        hop_length=HOP,
-        n_mels=N_MELS,
-        fmin=FMIN,
-        fmax=FMAX,
-        power=2.0
+    _, _, Zxx = stft(
+        y,
+        fs=SR,
+        nperseg=N_FFT,
+        noverlap=N_FFT - HOP,
+        window="hann",
+        padded=False,
+        boundary=None,
     )
 
-    mel_db = librosa.power_to_db(mel, ref=np.max, top_db=80)
+    S = np.abs(Zxx) ** 2
+
+    mel = np.dot(MEL_FILTER, S)
+
+    mel = np.maximum(mel, 1e-10)
+    mel_db = 10.0 * np.log10(mel)
+    mel_db -= np.max(mel_db)
+
     mel_db = (mel_db - mel_db.mean()) / (mel_db.std() + 1e-6)
 
-    # plt.figure(figsize=(6, 4))
-    # librosa.display.specshow(
-    #     mel_db,
-    #     sr=SR,
-    #     hop_length=HOP,
-    #     x_axis="time",
-    #     y_axis="mel",
-    #     cmap="magma"
-    # )
-    #
-    # plt.colorbar(label="z-normalized dB")
-    # plt.title("Log-Mel Spectrogram")
-    # plt.tight_layout()
-    # plt.savefig(f"spectograms/spec_{c}.png", dpi=150, bbox_inches="tight", pad_inches=0)
-    # plt.close()
-
-    c+=1
     return mel_db
-
-
-# for spec in a:
-#     plt.figure(figsize=(6, 4))
-#     librosa.display.specshow(
-#         spec,
-#         sr=SR,
-#         hop_length=HOP,
-#         x_axis="time",
-#         y_axis="mel",
-#         cmap="magma"
-#     )
-#
-#     plt.colorbar(label="z-normalized dB")
-#     plt.title("Log-Mel Spectrogram")
-#     plt.tight_layout()
-#     plt.show()
